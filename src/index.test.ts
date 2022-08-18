@@ -3,6 +3,7 @@ jest.mock('@actions/core');
 
 const SERVICE_ID = "serviceId";
 const SERVICE_NAME = "serviceName";
+const SERVICE_URL = "serviceUrl";
 const SERVICE_ARN = "serviceArn";
 const SOURCE_ARN_CONNECTION = "sourceArnConnection";
 const ACCESS_ROLE_ARN = "accessRoleArn";
@@ -63,7 +64,7 @@ describe('Deploy to AppRunner', () => {
 
         const sendConfig: ICommandConfig = {
             listServicesCommand: [{ NextToken: undefined, ServiceSummaryList: [] }],
-            createServiceCommand: [{ Service: { ServiceId: SERVICE_ID } }],
+            createServiceCommand: [{ Service: { ServiceId: SERVICE_ID, ServiceUrl: SERVICE_URL, ServiceArn: SERVICE_ARN } }],
         }
         mockSendDef.mockImplementation((command) => {
             return getFakeCommandOutput(sendConfig, command.input, commandLog);
@@ -73,6 +74,9 @@ describe('Deploy to AppRunner', () => {
 
         expect(setFailedMock).not.toHaveBeenCalled();
         expect(setOutputMock).toHaveBeenNthCalledWith(1, 'service-id', SERVICE_ID);
+        expect(setOutputMock).toHaveBeenNthCalledWith(2, 'service-url', SERVICE_URL);
+        expect(setOutputMock).toHaveBeenNthCalledWith(3, 'service-arn', SERVICE_ARN);
+
         expect(infoMock).toBeCalledWith(`Service ${SERVICE_ID} has started creation. Watch for creation progress in AppRunner console`);
     });
 
@@ -89,7 +93,7 @@ describe('Deploy to AppRunner', () => {
 
         const sendConfig: ICommandConfig = {
             listServicesCommand: [{ NextToken: undefined, ServiceSummaryList: [] }],
-            createServiceCommand: [{ Service: { ServiceId: SERVICE_ID } }],
+            createServiceCommand: [{ Service: { ServiceId: SERVICE_ID, ServiceUrl: SERVICE_URL, ServiceArn: SERVICE_ARN } }],
         }
         mockSendDef.mockImplementation((command) => {
             return getFakeCommandOutput(sendConfig, command.input, commandLog);
@@ -99,6 +103,9 @@ describe('Deploy to AppRunner', () => {
 
         expect(setFailedMock).not.toHaveBeenCalled();
         expect(setOutputMock).toHaveBeenNthCalledWith(1, 'service-id', SERVICE_ID);
+        expect(setOutputMock).toHaveBeenNthCalledWith(2, 'service-url', SERVICE_URL);
+        expect(setOutputMock).toHaveBeenNthCalledWith(3, 'service-arn', SERVICE_ARN);
+
         expect(infoMock).toBeCalledWith(`Service ${SERVICE_ID} has started creation. Watch for creation progress in AppRunner console`);
     });
 
@@ -121,7 +128,7 @@ describe('Deploy to AppRunner', () => {
                     ServiceArn: SERVICE_ARN,
                 }]
             }],
-            updateServiceCommand: [{ Service: { ServiceId: SERVICE_ID } }],
+            updateServiceCommand: [{ Service: { ServiceId: SERVICE_ID, ServiceUrl: SERVICE_URL, ServiceArn: SERVICE_ARN } }],
         }
         mockSendDef.mockImplementation((command) => {
             return getFakeCommandOutput(sendConfig, command.input, commandLog);
@@ -131,6 +138,9 @@ describe('Deploy to AppRunner', () => {
 
         expect(setFailedMock).not.toHaveBeenCalled();
         expect(setOutputMock).toHaveBeenNthCalledWith(1, 'service-id', SERVICE_ID);
+        expect(setOutputMock).toHaveBeenNthCalledWith(2, 'service-url', SERVICE_URL);
+        expect(setOutputMock).toHaveBeenNthCalledWith(3, 'service-arn', SERVICE_ARN);
+
         expect(infoMock).toBeCalledWith(`Service ${SERVICE_ID} has started creation. Watch for creation progress in AppRunner console`);
     });
 
@@ -158,7 +168,8 @@ describe('Deploy to AppRunner', () => {
                     ServiceArn: SERVICE_ARN,
                 }]
             }],
-            updateServiceCommand: [{ Service: { ServiceId: SERVICE_ID } }],
+            updateServiceCommand: [{ Service: { ServiceId: SERVICE_ID, ServiceArn: SERVICE_ARN,
+                ServiceUrl: SERVICE_URL, } }],
         }
         mockSendDef.mockImplementation((command) => {
             return getFakeCommandOutput(sendConfig, command.input, commandLog);
@@ -168,6 +179,9 @@ describe('Deploy to AppRunner', () => {
 
         expect(setFailedMock).not.toHaveBeenCalled();
         expect(setOutputMock).toHaveBeenNthCalledWith(1, 'service-id', SERVICE_ID);
+        expect(setOutputMock).toHaveBeenNthCalledWith(2, 'service-url', SERVICE_URL);
+        expect(setOutputMock).toHaveBeenNthCalledWith(3, 'service-arn', SERVICE_ARN);
+
         expect(infoMock).toBeCalledWith(`Service ${SERVICE_ID} has started creation. Watch for creation progress in AppRunner console`);
     });
 
@@ -192,7 +206,8 @@ describe('Deploy to AppRunner', () => {
                     ServiceArn: SERVICE_ARN,
                 }]
             }],
-            updateServiceCommand: [{ Service: { ServiceId: SERVICE_ID } }],
+            updateServiceCommand: [{ Service: { ServiceId: SERVICE_ID, ServiceArn: SERVICE_ARN,
+                ServiceUrl: SERVICE_URL } }],
         }
         mockSendDef.mockImplementation((command) => {
             return getFakeCommandOutput(sendConfig, command.input, commandLog);
@@ -202,6 +217,9 @@ describe('Deploy to AppRunner', () => {
 
         expect(setFailedMock).not.toHaveBeenCalled();
         expect(setOutputMock).toHaveBeenNthCalledWith(1, 'service-id', SERVICE_ID);
+        expect(setOutputMock).toHaveBeenNthCalledWith(2, 'service-url', SERVICE_URL);
+        expect(setOutputMock).toHaveBeenNthCalledWith(3, 'service-arn', SERVICE_ARN);
+
         expect(infoMock).toBeCalledWith(`Service ${SERVICE_ID} has started creation. Watch for creation progress in AppRunner console`);
     });
 
@@ -223,7 +241,7 @@ describe('Deploy to AppRunner', () => {
 
         const sendConfig: ICommandConfig = {
             listServicesCommand: [{ NextToken: undefined, ServiceSummaryList: [] }],
-            createServiceCommand: [{ Service: { ServiceId: SERVICE_ID, ServiceArn: SERVICE_ARN, } }],
+            createServiceCommand: [{ Service: { ServiceId: SERVICE_ID, ServiceArn: SERVICE_ARN, ServiceUrl: SERVICE_URL} }],
             describeServiceCommand: [{ Service: { Status: "CREATION_COMPLETE" } }],
         };
         mockSendDef.mockImplementation((command) => {
@@ -234,6 +252,9 @@ describe('Deploy to AppRunner', () => {
 
         expect(setFailedMock).not.toHaveBeenCalled();
         expect(setOutputMock).toHaveBeenNthCalledWith(1, 'service-id', SERVICE_ID);
+        expect(setOutputMock).toHaveBeenNthCalledWith(2, 'service-url', SERVICE_URL);
+        expect(setOutputMock).toHaveBeenNthCalledWith(3, 'service-arn', SERVICE_ARN);
+
         expect(infoMock).toBeCalledWith(`Waiting for the service ${SERVICE_ID} to reach stable state`);
         expect(infoMock).toBeCalledWith(`Service ${SERVICE_ID} has reached the stable state CREATION_COMPLETE`);
     });
@@ -344,7 +365,7 @@ describe('Deploy to AppRunner', () => {
 
         const sendConfig: ICommandConfig = {
             listServicesCommand: [{ NextToken: undefined, ServiceSummaryList: [] }],
-            createServiceCommand: [{ Service: { ServiceId: SERVICE_ID } }],
+            createServiceCommand: [{ Service: { ServiceId: SERVICE_ID, ServiceUrl: SERVICE_URL, ServiceArn: SERVICE_ARN } }],
         }
         mockSendDef.mockImplementation((command) => {
             return getFakeCommandOutput(sendConfig, command.input, commandLog);
@@ -354,6 +375,9 @@ describe('Deploy to AppRunner', () => {
 
         expect(setFailedMock).not.toHaveBeenCalled();
         expect(setOutputMock).toHaveBeenNthCalledWith(1, 'service-id', SERVICE_ID);
+        expect(setOutputMock).toHaveBeenNthCalledWith(2, 'service-url', SERVICE_URL);
+        expect(setOutputMock).toHaveBeenNthCalledWith(3, 'service-arn', SERVICE_ARN);
+
         expect(infoMock).toBeCalledWith(`Service ${SERVICE_ID} has started creation. Watch for creation progress in AppRunner console`);
     });
 });
