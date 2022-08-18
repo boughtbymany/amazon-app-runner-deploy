@@ -176,6 +176,7 @@ export async function run(): Promise<void> {
             info(`Service creation initiated with service ID - ${serviceId}`)
             serviceArn = createServiceResponse.Service?.ServiceArn;
             serviceUrl = createServiceResponse.Service?.ServiceUrl;
+            info(`Service creation initiated for service Url - ${serviceUrl}`)
         } else {
             info(`Updating existing service ${serviceName}`);
             const command = new UpdateServiceCommand({
@@ -225,6 +226,7 @@ export async function run(): Promise<void> {
             info(`Service update initiated with operation ID - ${serviceId}`)
             serviceArn = updateServiceResponse.Service?.ServiceArn;
             serviceUrl = updateServiceResponse.Service?.ServiceUrl;
+            info(`Service update initiated for service Url - ${serviceUrl}`)
         }
 
         // Set output
