@@ -122,6 +122,7 @@ export async function run(): Promise<void> {
         let serviceId: string | undefined = undefined;
         let serviceUrl: string | undefined = undefined;
 
+        info('Running DEV v0.1 ...');
         if (!serviceArn) {
             info(`Creating service ${serviceName}`);
             const command = new CreateServiceCommand({
@@ -222,9 +223,13 @@ export async function run(): Promise<void> {
                 };
             }
             const updateServiceResponse = await client.send(command);
+
             serviceId = updateServiceResponse.Service?.ServiceId;
             info(`Service update initiated with operation ID - ${serviceId}`)
+
             serviceArn = updateServiceResponse.Service?.ServiceArn;
+            info(`Service update initiated with service ARN - ${serviceArn}`)
+
             serviceUrl = updateServiceResponse.Service?.ServiceUrl;
             info(`Service update initiated for service Url - ${serviceUrl}`)
         }
