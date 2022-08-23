@@ -49,6 +49,11 @@ inputs:
 outputs:
   service-id:
     description: 'App Runner service ID'
+  service-url:
+    description: 'App Runner service URL'
+  service-arn:
+    description: 'App Runner service ARN'
+
 runs:
   using: 'node12'
   main: 'dist/index.js'
