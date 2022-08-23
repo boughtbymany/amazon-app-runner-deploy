@@ -122,9 +122,9 @@ export async function run(): Promise<void> {
         let serviceId: string | undefined = undefined;
         let serviceUrl: string | undefined = undefined;
 
-        info('Running DEV v0.1 ...');
+        info("Running DEV v0.1 ...");
         if (!serviceArn) {
-            info(`Creating service ${serviceName}`);
+            info(`Creating service v0.1 ${serviceName}`);
             const command = new CreateServiceCommand({
                 ServiceName: serviceName,
                 InstanceConfiguration: {
@@ -179,7 +179,7 @@ export async function run(): Promise<void> {
             serviceUrl = createServiceResponse.Service?.ServiceUrl;
             info(`Service creation initiated for service Url - ${serviceUrl}`)
         } else {
-            info(`Updating existing service ${serviceName}`);
+            info(`Updating existing v0.1 service ${serviceName}`);
             const command = new UpdateServiceCommand({
                 ServiceArn: serviceArn,
                 SourceConfiguration: {}
