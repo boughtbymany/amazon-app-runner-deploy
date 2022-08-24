@@ -2,6 +2,7 @@
 import { getInput, info, setFailed, setOutput } from "@actions/core";
 import { AppRunnerClient, CreateServiceCommand, ListServicesCommand, ListServicesCommandOutput, UpdateServiceCommand, DescribeServiceCommand, ImageRepositoryType } from "@aws-sdk/client-apprunner";
 import { debug } from '@actions/core';
+import { parse } from 'dotenv';
 
 const supportedRuntime = ['NODEJS_12', 'PYTHON_3'];
 
@@ -114,6 +115,14 @@ export async function run(): Promise<void> {
         // Memory - 2
         const memory = getInputInt('memory', 2);
 
+        // ENV VARs
+        let config = undefined;
+        if (envText) {
+            const buf = Buffer.from(envText);
+            config = parse(buf);
+            console.log(typeof config, config)
+        }
+
         // AppRunner client
         const client = new AppRunnerClient({ region: region });
 
@@ -144,7 +153,8 @@ export async function run(): Promise<void> {
                         ImageIdentifier: imageUri,
                         ImageRepositoryType: getImageType(imageUri),
                         ImageConfiguration: {
-                            Port: `${port}`
+                            Port: `${port}`,
+                            RuntimeEnvironmentVariables: config,
                         }
                     }
                 };
@@ -195,7 +205,8 @@ export async function run(): Promise<void> {
                         ImageIdentifier: imageUri,
                         ImageRepositoryType: getImageType(imageUri),
                         ImageConfiguration: {
-                            Port: `${port}`
+                            Port: `${port}`,
+                            RuntimeEnvironmentVariables: config,
                         }
                     }
                 }

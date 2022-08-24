@@ -14,6 +14,7 @@ export interface FakeInput {
     branch?: string;
     cpu?: string;
     memory?: string;
+    'env-text'?: string;
 }
 
 export function getFakeInput(config: FakeInput, name: string): string {
