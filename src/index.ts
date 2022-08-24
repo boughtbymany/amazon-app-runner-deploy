@@ -6,7 +6,7 @@ import { debug } from '@actions/core';
 const supportedRuntime = ['NODEJS_12', 'PYTHON_3'];
 
 const OPERATION_IN_PROGRESS = "OPERATION_IN_PROGRESS";
-const MAX_ATTEMPTS = 120;
+const MAX_ATTEMPTS = 180;
 
 // Wait in milliseconds (helps to implement exponential retries)
 function sleep(ms: number) {
@@ -64,6 +64,8 @@ export async function run(): Promise<void> {
     const startCommand = getInput('start-command', { required: false });
     const port = getInputInt('port', 80);
     const waitForService = getInput('wait-for-service-stability', { required: false }) || "false";
+    const envText = getInput('env-text', { required: false });
+
 
     try {
         // Check for service type
@@ -122,9 +124,8 @@ export async function run(): Promise<void> {
         let serviceId: string | undefined = undefined;
         let serviceUrl: string | undefined = undefined;
 
-        info("Running DEV v0.1 ...");
         if (!serviceArn) {
-            info(`Creating service v0.1 ${serviceName}`);
+            info(`Creating service ${serviceName}`);
             const command = new CreateServiceCommand({
                 ServiceName: serviceName,
                 InstanceConfiguration: {
@@ -179,7 +180,7 @@ export async function run(): Promise<void> {
             serviceUrl = createServiceResponse.Service?.ServiceUrl;
             info(`Service creation initiated for service Url - ${serviceUrl}`)
         } else {
-            info(`Updating existing v0.1 service ${serviceName}`);
+            info(`Updating existing service ${serviceName}`);
             const command = new UpdateServiceCommand({
                 ServiceArn: serviceArn,
                 SourceConfiguration: {}
