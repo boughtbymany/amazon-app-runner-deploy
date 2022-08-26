@@ -23,7 +23,7 @@ inputs:
     description: 'Docker image URI with tag'
     required: false
   env-text:
-    description: 'Enviromental Variables in string format'
+    description: 'Env vars in string format'
     required: false
   runtime:
     description: 'Runtime of the application, note: AppRunner only supports `NODEJS_12` and `PYTHON_3` runtime types'
