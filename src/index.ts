@@ -2,7 +2,7 @@
 import { getInput, info, setFailed, setOutput } from "@actions/core";
 import { AppRunnerClient, CreateServiceCommand, ListServicesCommand, ListServicesCommandOutput, UpdateServiceCommand, DescribeServiceCommand, ImageRepositoryType } from "@aws-sdk/client-apprunner";
 import { debug } from '@actions/core';
-import { parse } from 'dotenv';
+import { DotenvParseOutput, parse } from 'dotenv';
 
 const supportedRuntime = ['NODEJS_12', 'PYTHON_3'];
 
@@ -116,11 +116,10 @@ export async function run(): Promise<void> {
         const memory = getInputInt('memory', 2);
 
         // ENV VARs
-        let config = undefined;
+        let config: DotenvParseOutput | undefined = undefined;
         if (envText) {
             const buf = Buffer.from(envText);
             config = parse(buf);
-            console.log(typeof config, config)
         }
 
         // AppRunner client
