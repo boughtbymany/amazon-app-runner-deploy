@@ -13,6 +13,13 @@ const RUNTIME = "NODEJS_12";
 const BUILD_COMMAND = "build-command";
 const START_COMMAND = "start-command";
 const PORT = "80";
+const ENV_TEST = `
+FOO=foo_var
+BAR=bar_var
+BUZZ=1
+NONE=
+`;
+
 
 const mockSendDef = jest.fn();
 jest.mock('@aws-sdk/client-apprunner', () => {
@@ -80,11 +87,42 @@ describe('Deploy to AppRunner', () => {
         expect(infoMock).toBeCalledWith(`Service ${SERVICE_ID} has started creation. Watch for creation progress in AppRunner console`);
     });
 
+
     test('register app runner using docker registry configuration', async () => {
         const inputConfig: FakeInput = {
             service: SERVICE_NAME,
             "access-role-arn": ACCESS_ROLE_ARN,
             image: DOCKER_IMAGE,
+        };
+
+        getInputMock.mockImplementation((name) => {
+            return getFakeInput(inputConfig, name);
+        });
+
+        const sendConfig: ICommandConfig = {
+            listServicesCommand: [{ NextToken: undefined, ServiceSummaryList: [] }],
+            createServiceCommand: [{ Service: { ServiceId: SERVICE_ID, ServiceUrl: SERVICE_URL, ServiceArn: SERVICE_ARN } }],
+        }
+        mockSendDef.mockImplementation((command) => {
+            return getFakeCommandOutput(sendConfig, command.input, commandLog);
+        });
+
+        await run();
+
+        expect(setFailedMock).not.toHaveBeenCalled();
+        expect(setOutputMock).toHaveBeenNthCalledWith(1, 'service-id', SERVICE_ID);
+        expect(setOutputMock).toHaveBeenNthCalledWith(2, 'service-url', SERVICE_URL);
+        expect(setOutputMock).toHaveBeenNthCalledWith(3, 'service-arn', SERVICE_ARN);
+
+        expect(infoMock).toBeCalledWith(`Service ${SERVICE_ID} has started creation. Watch for creation progress in AppRunner console`);
+    });
+
+    test('register app runner using docker registry configuration and env vars', async () => {
+        const inputConfig: FakeInput = {
+            service: SERVICE_NAME,
+            "access-role-arn": ACCESS_ROLE_ARN,
+            image: DOCKER_IMAGE,
+            "env-text": ENV_TEST,
         };
 
         getInputMock.mockImplementation((name) => {

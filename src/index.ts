@@ -2,11 +2,12 @@
 import { getInput, info, setFailed, setOutput } from "@actions/core";
 import { AppRunnerClient, CreateServiceCommand, ListServicesCommand, ListServicesCommandOutput, UpdateServiceCommand, DescribeServiceCommand, ImageRepositoryType } from "@aws-sdk/client-apprunner";
 import { debug } from '@actions/core';
+import { DotenvParseOutput, parse } from 'dotenv';
 
 const supportedRuntime = ['NODEJS_12', 'PYTHON_3'];
 
 const OPERATION_IN_PROGRESS = "OPERATION_IN_PROGRESS";
-const MAX_ATTEMPTS = 120;
+const MAX_ATTEMPTS = 180;
 
 // Wait in milliseconds (helps to implement exponential retries)
 function sleep(ms: number) {
@@ -64,6 +65,8 @@ export async function run(): Promise<void> {
     const startCommand = getInput('start-command', { required: false });
     const port = getInputInt('port', 80);
     const waitForService = getInput('wait-for-service-stability', { required: false }) || "false";
+    const envText = getInput('env-text', { required: false });
+
 
     try {
         // Check for service type
@@ -112,6 +115,13 @@ export async function run(): Promise<void> {
         // Memory - 2
         const memory = getInputInt('memory', 2);
 
+        // ENV VARs
+        let config: DotenvParseOutput | undefined = undefined;
+        if (envText) {
+            const buf = Buffer.from(envText);
+            config = parse(buf);
+        }
+
         // AppRunner client
         const client = new AppRunnerClient({ region: region });
 
@@ -122,7 +132,6 @@ export async function run(): Promise<void> {
         let serviceId: string | undefined = undefined;
         let serviceUrl: string | undefined = undefined;
 
-        info('Running DEV v0.1 ...');
         if (!serviceArn) {
             info(`Creating service ${serviceName}`);
             const command = new CreateServiceCommand({
@@ -143,7 +152,8 @@ export async function run(): Promise<void> {
                         ImageIdentifier: imageUri,
                         ImageRepositoryType: getImageType(imageUri),
                         ImageConfiguration: {
-                            Port: `${port}`
+                            Port: `${port}`,
+                            RuntimeEnvironmentVariables: config,
                         }
                     }
                 };
@@ -194,7 +204,8 @@ export async function run(): Promise<void> {
                         ImageIdentifier: imageUri,
                         ImageRepositoryType: getImageType(imageUri),
                         ImageConfiguration: {
-                            Port: `${port}`
+                            Port: `${port}`,
+                            RuntimeEnvironmentVariables: config,
                         }
                     }
                 }
