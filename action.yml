@@ -26,7 +26,7 @@ inputs:
     description: 'Env vars in string format'
     required: false
   runtime:
-    description: 'Runtime of the application, note: AppRunner only supports `NODEJS_12` and `PYTHON_3` runtime types'
+    description: 'Runtime of the application, note: AppRunner only supports `NODEJS_12`, 'NODEJS_14' and `PYTHON_3` runtime types'
     required: false
   build-command:
     description: "Application build command"
@@ -48,6 +48,9 @@ inputs:
     required: false
   wait-for-service-stability:
     description: 'Whether to wait for the App Runner service to reach stable state after deploying the new task definition. Valid value is "true". Will default to not waiting.'
+    required: false
+  configuration-source:
+    description: 'With code configuration use either API or REPOSITORY, defaults to API'
     required: false
 outputs:
   service-id:

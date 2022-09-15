@@ -4,8 +4,8 @@ import { AppRunnerClient, CreateServiceCommand, ListServicesCommand, ListService
 import { debug } from '@actions/core';
 import { DotenvParseOutput, parse } from 'dotenv';
 
-const supportedRuntime = ['NODEJS_12', 'PYTHON_3'];
-
+const supportedRuntime = ['NODEJS_12', 'NODEJS_14', 'PYTHON_3'];
+const supportedConfigurationSource = [ 'API', 'REPOSITORY']
 const OPERATION_IN_PROGRESS = "OPERATION_IN_PROGRESS";
 const MAX_ATTEMPTS = 180;
 
@@ -66,6 +66,7 @@ export async function run(): Promise<void> {
     const port = getInputInt('port', 80);
     const waitForService = getInput('wait-for-service-stability', { required: false }) || "false";
     const envText = getInput('env-text', { required: false });
+    const configurationSource = getInput('configuration-source', { required: false }) || "API";
 
 
     try {
@@ -82,15 +83,22 @@ export async function run(): Promise<void> {
 
         // Mandatory check for source code based AppRunner
         if (!isImageBased) {
-            if (!sourceConnectionArn || !repoUrl || !runtime
-                || !buildCommand
-                || !startCommand)
-                throw new Error('Connection ARN, Repository URL, Runtime, build and start command are expected');
+            // configurationSource enum check
+            if (!supportedConfigurationSource.includes(configurationSource))
+                throw new Error(`Unexpected value passed in runtime ${configurationSource} only supported values are: ${JSON.stringify(supportedConfigurationSource)}`);
 
+            if (!sourceConnectionArn || !repoUrl )
+                throw new Error('Connection ARN and Repository URL are expected');
 
-            // Runtime enum check
-            if (!supportedRuntime.includes(runtime))
-                throw new Error(`Unexpected value passed in runtime ${runtime} only supported values are: ${JSON.stringify(supportedRuntime)}`);
+            if (configurationSource == "API") {
+                if ( !runtime || !buildCommand || !startCommand)
+                    throw new Error('Runtime, build and start command are expected with API configurationSource');
+
+                // Runtime enum check
+                if (!supportedRuntime.includes(runtime))
+                    throw new Error(`Unexpected value passed in runtime ${runtime} only supported values are: ${JSON.stringify(supportedRuntime)}`);            
+            }
+
         } else {            
             // IAM Role check for ECR based AppRunner
             if (!accessRoleArn)
@@ -159,28 +167,48 @@ export async function run(): Promise<void> {
                 };
             } else {
                 // Source code based set source code details
-                command.input.SourceConfiguration = {
-                    AuthenticationConfiguration: {
-                        ConnectionArn: sourceConnectionArn
-                    },
-                    AutoDeploymentsEnabled: true,
-                    CodeRepository: {
-                        RepositoryUrl: repoUrl,
-                        SourceCodeVersion: {
-                            Type: "BRANCH",
-                            Value: branch
+                if ( configurationSource == 'API') {
+                    command.input.SourceConfiguration = {
+                        AuthenticationConfiguration: {
+                            ConnectionArn: sourceConnectionArn
                         },
-                        CodeConfiguration: {
-                            ConfigurationSource: "API",
-                            CodeConfigurationValues: {
-                                Runtime: runtime,
-                                BuildCommand: buildCommand,
-                                StartCommand: startCommand,
-                                Port: `${port}`
+                        AutoDeploymentsEnabled: true,
+                        CodeRepository: {
+                            RepositoryUrl: repoUrl,
+                            SourceCodeVersion: {
+                                Type: "BRANCH",
+                                Value: branch
+                            },
+                            CodeConfiguration: {
+                                ConfigurationSource: "API",
+                                CodeConfigurationValues: {
+                                    Runtime: runtime,
+                                    BuildCommand: buildCommand,
+                                    StartCommand: startCommand,
+                                    Port: `${port}`
+                                }
                             }
                         }
-                    }
-                };
+                    };
+                } else {
+                    // configurationSource must be REPOSITORY
+                    command.input.SourceConfiguration = {
+                        AuthenticationConfiguration: {
+                            ConnectionArn: sourceConnectionArn
+                        },
+                        AutoDeploymentsEnabled: true,
+                        CodeRepository: {
+                            RepositoryUrl: repoUrl,
+                            SourceCodeVersion: {
+                                Type: "BRANCH",
+                                Value: branch
+                            },
+                            CodeConfiguration: {
+                                ConfigurationSource: configurationSource,
+                            }
+                        }
+                    };                    
+                }
             }
             const createServiceResponse = await client.send(command);
             serviceId = createServiceResponse.Service?.ServiceId;
@@ -211,27 +239,47 @@ export async function run(): Promise<void> {
                 }
             } else {
                 // Source code based set source code details
-                command.input.SourceConfiguration = {
-                    AuthenticationConfiguration: {
-                        ConnectionArn: sourceConnectionArn
-                    },
-                    CodeRepository: {
-                        RepositoryUrl: repoUrl,
-                        SourceCodeVersion: {
-                            Type: "BRANCH",
-                            Value: branch
+                if (configurationSource == "API") {
+                    command.input.SourceConfiguration = {
+                        AuthenticationConfiguration: {
+                            ConnectionArn: sourceConnectionArn
                         },
-                        CodeConfiguration: {
-                            ConfigurationSource: "API",
-                            CodeConfigurationValues: {
-                                Runtime: runtime,
-                                BuildCommand: buildCommand,
-                                StartCommand: startCommand,
-                                Port: `${port}`
+                        CodeRepository: {
+                            RepositoryUrl: repoUrl,
+                            SourceCodeVersion: {
+                                Type: "BRANCH",
+                                Value: branch
+                            },
+                            CodeConfiguration: {
+                                ConfigurationSource: "API",
+                                CodeConfigurationValues: {
+                                    Runtime: runtime,
+                                    BuildCommand: buildCommand,
+                                    StartCommand: startCommand,
+                                    Port: `${port}`
+                                }
                             }
                         }
-                    }
-                };
+                    };
+                } else {
+                    // configurationSource must be REPOSITORY
+                    command.input.SourceConfiguration = {
+                        AuthenticationConfiguration: {
+                            ConnectionArn: sourceConnectionArn
+                        },
+                        AutoDeploymentsEnabled: true,
+                        CodeRepository: {
+                            RepositoryUrl: repoUrl,
+                            SourceCodeVersion: {
+                                Type: "BRANCH",
+                                Value: branch
+                            },
+                            CodeConfiguration: {
+                                ConfigurationSource: configurationSource,
+                            }
+                        }
+                    };                    
+                }                
             }
             const updateServiceResponse = await client.send(command);
 

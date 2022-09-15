@@ -87,6 +87,38 @@ describe('Deploy to AppRunner', () => {
         expect(infoMock).toBeCalledWith(`Service ${SERVICE_ID} has started creation. Watch for creation progress in AppRunner console`);
     });
 
+    test('register app runner with source code configuration - repo config', async () => {
+        const inputConfig: FakeInput = {
+            service: SERVICE_NAME,
+            "source-connection-arn": SOURCE_ARN_CONNECTION,
+            "access-role-arn": ACCESS_ROLE_ARN,
+            repo: REPO,
+            'configuration-source': "REPOSITORY",
+            "wait-for-service-stability": 'false',
+        };
+
+        getInputMock.mockImplementation((name) => {
+            return getFakeInput(inputConfig, name);
+        });
+
+        const sendConfig: ICommandConfig = {
+            listServicesCommand: [{ NextToken: undefined, ServiceSummaryList: [] }],
+            createServiceCommand: [{ Service: { ServiceId: SERVICE_ID, ServiceUrl: SERVICE_URL, ServiceArn: SERVICE_ARN } }],
+        }
+        mockSendDef.mockImplementation((command) => {
+            return getFakeCommandOutput(sendConfig, command.input, commandLog);
+        });
+
+        await run();
+
+        expect(setFailedMock).not.toHaveBeenCalled();
+        expect(setOutputMock).toHaveBeenNthCalledWith(1, 'service-id', SERVICE_ID);
+        expect(setOutputMock).toHaveBeenNthCalledWith(2, 'service-url', SERVICE_URL);
+        expect(setOutputMock).toHaveBeenNthCalledWith(3, 'service-arn', SERVICE_ARN);
+
+        expect(infoMock).toBeCalledWith(`Service ${SERVICE_ID} has started creation. Watch for creation progress in AppRunner console`);
+    });
+
 
     test('register app runner using docker registry configuration', async () => {
         const inputConfig: FakeInput = {
@@ -192,6 +224,44 @@ describe('Deploy to AppRunner', () => {
             "start-command": START_COMMAND,
             port: PORT,
             "wait-for-service-stability": 'false',
+        };
+
+        getInputMock.mockImplementation((name) => {
+            return getFakeInput(inputConfig, name);
+        });
+
+        const sendConfig: ICommandConfig = {
+            listServicesCommand: [{
+                NextToken: undefined,
+                ServiceSummaryList: [{
+                    ServiceName: SERVICE_NAME,
+                    ServiceArn: SERVICE_ARN,
+                }]
+            }],
+            updateServiceCommand: [{ Service: { ServiceId: SERVICE_ID, ServiceArn: SERVICE_ARN,
+                ServiceUrl: SERVICE_URL, } }],
+        }
+        mockSendDef.mockImplementation((command) => {
+            return getFakeCommandOutput(sendConfig, command.input, commandLog);
+        });
+
+        await run();
+
+        expect(setFailedMock).not.toHaveBeenCalled();
+        expect(setOutputMock).toHaveBeenNthCalledWith(1, 'service-id', SERVICE_ID);
+        expect(setOutputMock).toHaveBeenNthCalledWith(2, 'service-url', SERVICE_URL);
+        expect(setOutputMock).toHaveBeenNthCalledWith(3, 'service-arn', SERVICE_ARN);
+
+        expect(infoMock).toBeCalledWith(`Service ${SERVICE_ID} has started creation. Watch for creation progress in AppRunner console`);
+    });
+
+    test('update app runner with source code configuration - repo config', async () => {
+        const inputConfig: FakeInput = {
+            service: SERVICE_NAME,
+            "source-connection-arn": SOURCE_ARN_CONNECTION,
+            repo: REPO,
+            "wait-for-service-stability": 'false',
+            'configuration-source': "REPOSITORY",
         };
 
         getInputMock.mockImplementation((name) => {
@@ -356,6 +426,62 @@ describe('Deploy to AppRunner', () => {
             "build-command": BUILD_COMMAND,
             "start-command": START_COMMAND,
             port: PORT,
+            "wait-for-service-stability": 'true',
+        };
+
+        getInputMock.mockImplementation((name) => {
+            return getFakeInput(inputConfig, name);
+        });
+
+        await run();
+
+        expect(setFailedMock).toHaveBeenCalledTimes(1);
+    });
+
+    test('Validation - Invalid Configuration Source', async () => {
+        const inputConfig: FakeInput = {
+            service: SERVICE_NAME,
+            "source-connection-arn": SOURCE_ARN_CONNECTION,
+            "access-role-arn": ACCESS_ROLE_ARN,
+            repo: REPO,
+            "configuration-source": "INVALID-CONFIGURATION",
+            "wait-for-service-stability": 'true',
+        };
+
+        getInputMock.mockImplementation((name) => {
+            return getFakeInput(inputConfig, name);
+        });
+
+        await run();
+
+        expect(setFailedMock).toHaveBeenCalledTimes(1);
+    });
+
+    test('Validation - API Source missing configuration', async () => {
+        const inputConfig: FakeInput = {
+            service: SERVICE_NAME,
+            "source-connection-arn": SOURCE_ARN_CONNECTION,
+            "access-role-arn": ACCESS_ROLE_ARN,
+            repo: REPO,
+            "configuration-source": "API",
+            "wait-for-service-stability": 'true',
+        };
+
+        getInputMock.mockImplementation((name) => {
+            return getFakeInput(inputConfig, name);
+        });
+
+        await run();
+
+        expect(setFailedMock).toHaveBeenCalledTimes(1);
+    });
+
+    test('Validation - REPOSITORY Source missing connection ARN', async () => {
+        const inputConfig: FakeInput = {
+            service: SERVICE_NAME,
+            "access-role-arn": ACCESS_ROLE_ARN,
+            repo: REPO,
+            "configuration-source": "REPOSITORY",
             "wait-for-service-stability": 'true',
         };
 
