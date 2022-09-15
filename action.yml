@@ -52,6 +52,9 @@ inputs:
   configuration-source:
     description: 'With code configuration use either API or REPOSITORY, defaults to API'
     required: false
+  required-stable-state:
+    description: 'If `wait-for-service-stability` is used, the expected service status to be reached'
+    required: false
 outputs:
   service-id:
     description: 'App Runner service ID'
@@ -59,8 +62,6 @@ outputs:
     description: 'App Runner service URL'
   service-arn:
     description: 'App Runner service ARN'
-  status:
-    description: 'App Runner service status, undefined if not waiting for service stability'
 
 runs:
   using: 'node12'

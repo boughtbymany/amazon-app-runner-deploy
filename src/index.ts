@@ -67,6 +67,7 @@ export async function run(): Promise<void> {
     const waitForService = getInput('wait-for-service-stability', { required: false }) || "false";
     const envText = getInput('env-text', { required: false });
     const configurationSource = getInput('configuration-source', { required: false }) || "API";
+    const requiredStableState = getInput('required-stable-state', { required: false });
 
 
     try {
@@ -298,11 +299,10 @@ export async function run(): Promise<void> {
         setOutput('service-url', serviceUrl);
         setOutput('service-arn', serviceArn);
 
-        let status: string | undefined = undefined
         // Wait for service to be stable (if required)
         if (waitForService === "true") {
             let attempts = 0;
-            status = OPERATION_IN_PROGRESS;
+            let status = OPERATION_IN_PROGRESS;
             info(`Waiting for the service ${serviceId} to reach stable state`);
             while (status === OPERATION_IN_PROGRESS && attempts < MAX_ATTEMPTS) {
                 const describeServiceResponse = await client.send(new DescribeServiceCommand({
@@ -319,14 +319,19 @@ export async function run(): Promise<void> {
             }
 
             // Throw error if service has not reached an end state
-            if (attempts >= MAX_ATTEMPTS)
+            if (attempts >= MAX_ATTEMPTS) {
                 throw new Error(`Service did not reach stable state after ${attempts} attempts`);
-            else
+            } else {
+                if( requiredStableState ) {
+                    if ( status != requiredStableState ) {
+                        throw new Error(`Service ${serviceId} status '${status}' is not required stable state '${requiredStableState}'`);
+                    }
+                }
                 info(`Service ${serviceId} has reached the stable state ${status}`);
+            }
         } else {
             info(`Service ${serviceId} has started creation. Watch for creation progress in AppRunner console`);
         }
-        setOutput('status', status);
     } catch (error) {
         if (error instanceof Error) {
             setFailed(error.message);
