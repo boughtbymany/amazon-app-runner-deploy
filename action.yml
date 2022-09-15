@@ -59,6 +59,8 @@ outputs:
     description: 'App Runner service URL'
   service-arn:
     description: 'App Runner service ARN'
+  status:
+    description: 'App Runner service status, undefined if not waiting for service stability'
 
 runs:
   using: 'node12'
