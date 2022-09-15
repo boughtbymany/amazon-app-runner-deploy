@@ -196,7 +196,8 @@ export async function run(): Promise<void> {
                         AuthenticationConfiguration: {
                             ConnectionArn: sourceConnectionArn
                         },
-                        AutoDeploymentsEnabled: true,
+                        // TODO: workaround
+                        // AutoDeploymentsEnabled: true,
                         CodeRepository: {
                             RepositoryUrl: repoUrl,
                             SourceCodeVersion: {
@@ -267,7 +268,6 @@ export async function run(): Promise<void> {
                         AuthenticationConfiguration: {
                             ConnectionArn: sourceConnectionArn
                         },
-                        AutoDeploymentsEnabled: true,
                         CodeRepository: {
                             RepositoryUrl: repoUrl,
                             SourceCodeVersion: {
