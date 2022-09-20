@@ -119,6 +119,38 @@ describe('Deploy to AppRunner', () => {
         expect(infoMock).toBeCalledWith(`Service ${SERVICE_ID} has started creation. Watch for creation progress in AppRunner console`);
     });
 
+    test('register app runner with source code configuration - repo config, no auto deployments', async () => {
+        const inputConfig: FakeInput = {
+            service: SERVICE_NAME,
+            "source-connection-arn": SOURCE_ARN_CONNECTION,
+            "access-role-arn": ACCESS_ROLE_ARN,
+            repo: REPO,
+            'configuration-source': "REPOSITORY",
+            "wait-for-service-stability": 'false',
+            "auto-deployments-enabled": 'false'
+        };
+
+        getInputMock.mockImplementation((name) => {
+            return getFakeInput(inputConfig, name);
+        });
+
+        const sendConfig: ICommandConfig = {
+            listServicesCommand: [{ NextToken: undefined, ServiceSummaryList: [] }],
+            createServiceCommand: [{ Service: { ServiceId: SERVICE_ID, ServiceUrl: SERVICE_URL, ServiceArn: SERVICE_ARN } }],
+        }
+        mockSendDef.mockImplementation((command) => {
+            return getFakeCommandOutput(sendConfig, command.input, commandLog);
+        });
+
+        await run();
+
+        expect(setFailedMock).not.toHaveBeenCalled();
+        expect(setOutputMock).toHaveBeenNthCalledWith(1, 'service-id', SERVICE_ID);
+        expect(setOutputMock).toHaveBeenNthCalledWith(2, 'service-url', SERVICE_URL);
+        expect(setOutputMock).toHaveBeenNthCalledWith(3, 'service-arn', SERVICE_ARN);
+
+        expect(infoMock).toBeCalledWith(`Service ${SERVICE_ID} has started creation. Watch for creation progress in AppRunner console`);
+    });
 
     test('register app runner using docker registry configuration', async () => {
         const inputConfig: FakeInput = {

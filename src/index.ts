@@ -30,6 +30,15 @@ function getInputInt(name: string, defaultValue: number): number {
     return isNaN(result) ? defaultValue : result;
 }
 
+function getInputBool(name: string, defaultValue: boolean): boolean {
+    const val = getInput(name, { required: false });
+    if (!val) {
+        return defaultValue;
+    }
+
+    return val.toLowerCase() === "true"
+}
+
 async function getServiceArn(client: AppRunnerClient, serviceName: string): Promise<string | undefined> {
 
     let nextToken: string | undefined = undefined;
@@ -68,7 +77,7 @@ export async function run(): Promise<void> {
     const envText = getInput('env-text', { required: false });
     const configurationSource = getInput('configuration-source', { required: false }) || "API";
     const requiredStableState = getInput('required-stable-state', { required: false });
-
+    const autoDeploymentsEnabled = getInputBool('auto-deployments-enabled', true);
 
     try {
         // Check for service type
@@ -173,7 +182,7 @@ export async function run(): Promise<void> {
                         AuthenticationConfiguration: {
                             ConnectionArn: sourceConnectionArn
                         },
-                        AutoDeploymentsEnabled: true,
+                        AutoDeploymentsEnabled: autoDeploymentsEnabled,
                         CodeRepository: {
                             RepositoryUrl: repoUrl,
                             SourceCodeVersion: {
@@ -197,8 +206,7 @@ export async function run(): Promise<void> {
                         AuthenticationConfiguration: {
                             ConnectionArn: sourceConnectionArn
                         },
-                        // TODO: workaround
-                        // AutoDeploymentsEnabled: true,
+                        AutoDeploymentsEnabled: autoDeploymentsEnabled,
                         CodeRepository: {
                             RepositoryUrl: repoUrl,
                             SourceCodeVersion: {

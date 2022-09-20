@@ -55,6 +55,9 @@ inputs:
   required-stable-state:
     description: 'If `wait-for-service-stability` is used, the expected service status to be reached'
     required: false
+  auto-deployments-enabled:
+    description: 'Enable automatic deployment of service on source updates, defaults to true'
+    required: false
 outputs:
   service-id:
     description: 'App Runner service ID'

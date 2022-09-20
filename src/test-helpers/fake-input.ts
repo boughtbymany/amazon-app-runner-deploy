@@ -16,6 +16,7 @@ export interface FakeInput {
     memory?: string;
     'env-text'?: string;
     'configuration-source'?: string;
+    'auto-deployments-enabled'?: string;
 }
 
 export function getFakeInput(config: FakeInput, name: string): string {
