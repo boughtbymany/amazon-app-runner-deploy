@@ -7,6 +7,7 @@ import { DotenvParseOutput, parse } from 'dotenv';
 const supportedRuntime = ['NODEJS_12', 'PYTHON_3'];
 
 const OPERATION_IN_PROGRESS = "OPERATION_IN_PROGRESS";
+const CREATE_FAILED = "CREATE_FAILED";
 const MAX_ATTEMPTS = 180;
 
 // Wait in milliseconds (helps to implement exponential retries)
@@ -272,6 +273,9 @@ export async function run(): Promise<void> {
             // Throw error if service has not reached an end state
             if (attempts >= MAX_ATTEMPTS)
                 throw new Error(`Service did not reach stable state after ${attempts} attempts`);
+            // Service may not have been created
+            else if (status === CREATE_FAILED)
+                throw new Error(`Service status is ${status}`);
             else
                 info(`Service ${serviceId} has reached the stable state ${status}`);
         } else {

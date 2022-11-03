@@ -297,6 +297,41 @@ describe('Deploy to AppRunner', () => {
         expect(infoMock).toBeCalledWith(`Service ${SERVICE_ID} has reached the stable state CREATION_COMPLETE`);
     });
 
+    test('register app and error generated when create fails', async () => {
+        const inputConfig: FakeInput = {
+            service: SERVICE_NAME,
+            "source-connection-arn": SOURCE_ARN_CONNECTION,
+            "access-role-arn": ACCESS_ROLE_ARN,
+            repo: REPO,
+            runtime: RUNTIME,
+            "build-command": BUILD_COMMAND,
+            "start-command": START_COMMAND,
+            port: PORT,
+            "wait-for-service-stability": 'true',
+        };
+        getInputMock.mockImplementation((name) => {
+            return getFakeInput(inputConfig, name);
+        });
+
+        const sendConfig: ICommandConfig = {
+            listServicesCommand: [{ NextToken: undefined, ServiceSummaryList: [] }],
+            createServiceCommand: [{ Service: { ServiceId: SERVICE_ID, ServiceArn: SERVICE_ARN, ServiceUrl: SERVICE_URL} }],
+            describeServiceCommand: [{ Service: { Status: "CREATE_FAILED" } }],
+        };
+        mockSendDef.mockImplementation((command) => {
+            return getFakeCommandOutput(sendConfig, command.input, commandLog);
+        });
+
+        await run();
+
+        expect(setFailedMock).toBeCalledWith('Service status is CREATE_FAILED');
+        expect(setOutputMock).toHaveBeenNthCalledWith(1, 'service-id', SERVICE_ID);
+        expect(setOutputMock).toHaveBeenNthCalledWith(2, 'service-url', SERVICE_URL);
+        expect(setOutputMock).toHaveBeenNthCalledWith(3, 'service-arn', SERVICE_ARN);
+
+        expect(infoMock).toBeCalledWith(`Waiting for the service ${SERVICE_ID} to reach stable state`);
+    });
+
     test('Validation - Service name empty', async () => {
         const inputConfig: FakeInput = {
             service: SERVICE_NAME,
